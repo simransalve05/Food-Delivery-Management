@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FoodExpress — Single Page App</title>
+  <style>
+    :root{
+      --accent:#ff4d4d;
+      --muted:#666;
+      --card:#fff;
+      --bg:#f6f7fb;
+      --glass: rgba(255,255,255,0.7);
+      --maxw:1100px;
+      --shadow: 0 8px 24px rgba(13,13,13,0.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg, #fbfdff, #f6f7fb);
+      color:#111;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+    }
+
+    /* Header */
+    header{
+      position:sticky;
+      top:0;
+      z-index:60;
+      backdrop-filter: blur(6px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.6));
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+    .navwrap{
+      max-width:var(--maxw);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 20px;
+      gap:12px;
+    }
+    .logo{
+      display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--accent)
+    }
+    .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 4px 16px rgba(255,77,77,0.2)}
+    nav a{
+      margin:0 8px;
+      text-decoration:none;color:#222;padding:8px 10px;border-radius:8px;font-weight:600;font-size:14px;
+    }
+    nav a.active, nav a:hover{background:var(--glass);color:var(--accent)}
+    .actions{display:flex;align-items:center;gap:12px}
+
+    /* Hero */
+    .hero{
+      max-width:var(--maxw);
+      margin:22px auto;
+      display:grid;
+      grid-template-columns:1fr 360px;
+      gap:26px;
+      align-items:center;
+      padding:26px;
+    }
+    .hero-card{
+      background:linear-gradient(180deg,#fff,#fbfcff);
+      border-radius:14px;padding:30px;box-shadow:var(--shadow);
+    }
+    .tag{display:inline-block;padding:6px 10px;background:#ffefef;color:var(--accent);border-radius:999px;margin-bottom:14px;font-weight:700;font-size:13px}
+    .hero h1{font-size:30px;margin:8px 0 8px}
+    .hero p{color:var(--muted);margin-bottom:18px}
+    .search{
+      display:flex;gap:8px;align-items:center;
+    }
+    .search input{
+      flex:1;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:14px;
+    }
+    .search button{padding:12px 14px;border-radius:10px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:700}
+
+    /* Right mini card */
+    .mini{
+      background:linear-gradient(180deg,#fff,#fbfcff);
+      border-radius:14px;padding:18px;box-shadow:var(--shadow);
+      display:flex;flex-direction:column;gap:14px;
+    }
+    .mini h3{margin:0}
+    .mini .stats{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .stat{background:#fff;padding:10px;border-radius:10px;text-align:center;flex:1;box-shadow:0 4px 14px rgba(0,0,0,0.04)}
+    .stat small{display:block;color:var(--muted)}
+
+    /* Sections */
+    .section{max-width:var(--maxw);margin:28px auto;padding:20px}
+    .section-title{font-size:20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+    .sub{color:var(--muted);font-size:14px}
+
+    /* Restaurants list */
+    .restaurants{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .r-card{background:var(--card);padding:12px;border-radius:12px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:center}
+    .r-card img{width:110px;height:80px;object-fit:cover;border-radius:10px}
+    .r-meta h4{margin:0 0 6px;font-size:16px}
+    .r-meta p{margin:0;color:var(--muted);font-size:13px}
+    .r-meta .btn{margin-top:8px;padding:8px 10px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px}
+
+    /* Menu grid */
+    .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+    .menu-card{background:linear-gradient(180deg,#fff,#fcfdff);border-radius:12px;padding:10px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .22s}
+    .menu-card:hover{transform:translateY(-6px)}
+    .menu-card img{width:100%;height:140px;object-fit:cover;border-radius:10px}
+    .menu-card .meta{display:flex;align-items:center;justify-content:space-between;padding-top:8px}
+    .price{font-weight:800;color:var(--accent)}
+    .menu-card button{margin-top:8px;width:100%;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+
+    /* Cart sidebar */
+    .cart-toggle{position:fixed;right:18px;bottom:18px;background:var(--accent);color:white;border:none;padding:12px 15px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,0.18);cursor:pointer;z-index:70}
+    .cart-side{position:fixed;right:-380px;top:0;height:100%;width:360px;background:linear-gradient(180deg,#fff,#fbfbff);box-shadow:-20px 0 40px rgba(0,0,0,0.12);transition:0.35s;padding:18px;z-index:80;overflow:auto}
+    .cart-side.open{right:0}
+    .cart-head{display:flex;align-items:center;justify-content:space-between}
+    .cart-list{margin-top:12px;display:flex;flex-direction:column;gap:12px}
+    .cart-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:white;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+    .cart-item img{width:60px;height:48px;object-fit:cover;border-radius:8px}
+    .cart-item .cmeta{flex:1}
+    .qty{display:inline-flex;align-items:center;border-radius:8px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
+    .qty button{padding:6px 10px;background:transparent;border:0;cursor:pointer}
+    .checkout{margin-top:14px;padding:12px;border-radius:10px;background:var(--accent);color:white;border:none;font-weight:800;width:100%;cursor:pointer}
+
+    /* Contact */
+    .contact-form{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+    .contact-form input, .contact-form textarea{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:14px}
+    .contact-form textarea{grid-column:1/3;min-height:120px}
+    .contact-form button{grid-column:1/3;padding:12px;border-radius:10px;background:var(--accent);color:white;border:none;font-weight:700;cursor:pointer}
+
+    /* Footer */
+    footer{max-width:var(--maxw);margin:30px auto;padding:20px;text-align:center;color:var(--muted)}
+
+    /* Responsive */
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr}
+      .mini{order:2}
+      .hero-card{order:1}
+      .contact-form{grid-template-columns:1fr}
+    }
+
+    @media (max-width:560px){
+      nav a{display:none}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="navwrap">
+      <div class="logo"><span class="dot"></span> FoodExpress</div>
+      <nav id="nav">
+        <a href="#home" class="navlink active">Home</a>
+        <a href="#restaurants" class="navlink">Restaurants</a>
+        <a href="#menu" class="navlink">Menu</a>
+        <a href="#contact" class="navlink">Contact</a>
+      </nav>
+      <div class="actions">
+        <button class="cart-toggle" id="openCart">🛒 <span id="cartCountBubble">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main id="home">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="tag">Fast • Fresh • Friendly</div>
+        <h1>Delicious food. Delivered <span style="color:var(--accent)">quickly</span>.</h1>
+        <p style="color:var(--muted)">Browse restaurants, explore menus, add to cart and checkout — all in one page demo.</p>
+
+        <div class="search" style="margin-top:18px">
+          <input id="searchInput" placeholder="Search dishes or restaurants (e.g. pizza, burger)"/>
+          <button id="searchBtn">Search</button>
+        </div>
+
+        <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip" data-filter="all" onclick="filterMenu('all')">All</button>
+          <button class="chip" data-filter="veg" onclick="filterMenu('veg')">Veg</button>
+          <button class="chip" data-filter="nonveg" onclick="filterMenu('nonveg')">Non-Veg</button>
+          <button class="chip" data-filter="pizza" onclick="filterMenu('pizza')">Pizza</button>
+          <button class="chip" data-filter="burger" onclick="filterMenu('burger')">Burger</button>
+        </div>
+      </div>
+
+      <aside class="mini">
+        <h3>Order at a glance</h3>
+        <div class="stats">
+          <div class="stat">
+            <strong id="stat-count">0</strong>
+            <small>Items</small>
+          </div>
+          <div class="stat">
+            <strong id="stat-total">₹0</strong>
+            <small>Cart Value</small>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button onclick="goToSection('restaurants')" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;cursor:pointer">Restaurants</button>
+          <button onclick="goToSection('menu')" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:var(--accent);color:white;cursor:pointer">Order Now</button>
+        </div>
+      </aside>
+    </section>
+
+    <!-- RESTAURANTS -->
+    <section id="restaurants" class="section">
+      <div class="section-title">
+        <div>
+          <strong>Top Restaurants</strong>
+          <div class="sub">Pick from nearby popular spots</div>
+        </div>
+        <div style="align-self:flex-end">
+          <small style="color:var(--muted)">Showing 3</small>
+        </div>
+      </div>
+
+      <div class="restaurants" id="restaurantsList"></div>
+    </section>
+
+    <!-- MENU -->
+    <section id="menu" class="section">
+      <div class="section-title">
+        <div>
+          <strong>Menu</strong>
+          <div class="sub">Tasty picks — add to cart</div>
+        </div>
+        <div>
+          <small style="color:var(--muted)">Tip: Use search or filters</small>
+        </div>
+      </div>
+
+      <div class="menu-grid" id="menuGrid"></div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section">
+      <div class="section-title">
+        <div>
+          <strong>Contact Us</strong>
+          <div class="sub">Questions? Drop a message</div>
+        </div>
+      </div>
+
+      <form class="contact-form" id="contactForm">
+        <input type="text" id="cname" placeholder="Your Name" required />
+        <input type="email" id="cemail" placeholder="Email address" required />
+        <textarea id="cmsg" placeholder="Your message" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 FoodExpress • Demo frontend project
+  </footer>
+
+  <!-- CART SIDEBAR -->
+  <aside class="cart-side" id="cartSide" aria-hidden="true">
+    <div class="cart-head">
+      <h3>Your Cart</h3>
+      <div>
+        <button id="closeCart" aria-label="Close cart" style="background:transparent;border:0;font-size:18px;cursor:pointer">✕</button>
+      </div>
+    </div>
+
+    <div id="cartList" class="cart-list"></div>
+
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <strong>Total</strong>
+      <strong id="cartTotal">₹0</strong>
+    </div>
+
+    <button class="checkout" id="checkoutBtn">Checkout</button>
+    <p style="color:var(--muted);font-size:13px;margin-top:10px">This is a front-end demo. Checkout action is simulated.</p>
+  </aside>
+
+  <script>
+    /***********************
+     * Demo dataset (images from online)
+     ***********************/
+    const RESTAURANTS = [
+      { id: 'r1', name: 'Urban Bites', tags: ['fastfood'], desc: 'Fast food & burgers', avg: '₹150', img: 'https://i.ibb.co/CvGR9r9/res1.jpg' },
+      { id: 'r2', name: 'Spice Villa', tags: ['indian'], desc: 'Indian classics & thalis', avg: '₹200', img: 'https://i.ibb.co/NxK9d7V/res2.jpg' },
+      { id: 'r3', name: 'Pizza Mania', tags: ['pizza'], desc: 'Loaded pizzas & sides', avg: '₹250', img: 'https://i.ibb.co/N7Gcm5w/res3.jpg' }
+    ];
+
+    const MENU = [
+      { id:'m1', name:'Margherita Pizza', price:199, category:'pizza', type:'veg', img:'https://i.ibb.co/q1W9p6x/pizza.jpg' },
+      { id:'m2', name:'Cheese Burger', price:149, category:'burger', type:'nonveg', img:'https://i.ibb.co/Wk6zYh0/burger.jpg' },
+      { id:'m3', name:'White Sauce Pasta', price:179, category:'pasta', type:'veg', img:'https://i.ibb.co/8rjV1Jy/pasta.jpg' },
+      { id:'m4', name:'Crispy Fries', price:99, category:'sides', type:'veg', img:'https://i.ibb.co/tKLxH8D/fries.jpg' },
+      { id:'m5', name:'Pepperoni Pizza', price:249, category:'pizza', type:'nonveg', img:'https://i.ibb.co/4f6P2zX/pizza2.jpg' },
+      { id:'m6', name:'Paneer Burger', price:159, category:'burger', type:'veg', img:'https://i.ibb.co/0G0fP1C/paneer-burger.jpg' }
+    ];
+
+    /***********************
+     * App state & utils
+     ***********************/
+    let cart = JSON.parse(localStorage.getItem('fe_cart')||'[]'); // items: {id,name,price, qty, img}
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    function saveCart(){
+      localStorage.setItem('fe_cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    function format(n){ return '₹' + Number(n).toFixed(0); }
+
+    /***********************
+     * Render functions
+     ***********************/
+    function renderRestaurants(){
+      const root = $('#restaurantsList');
+      root.innerHTML = '';
+      RESTAURANTS.forEach(r=>{
+        const el = document.createElement('div');
+        el.className = 'r-card';
+        el.innerHTML = `
+          <img src="${r.img}" alt="${r.name}">
+          <div class="r-meta">
+            <h4>${r.name}</h4>
+            <p>${r.desc} • <strong>${r.avg}</strong></p>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" onclick="goToMenuAndFilter('${r.id}')">View Menu</button>
+              <button class="btn" onclick="exploreRestaurant('${r.id}')" style="background:#eee;color:#111">Explore</button>
+            </div>
+          </div>
+        `;
+        root.appendChild(el);
+      });
+    }
+
+    function renderMenu(items = MENU){
+      const root = $('#menuGrid');
+      root.innerHTML = '';
+      items.forEach(m=>{
+        const el = document.createElement('div');
+        el.className = 'menu-card';
+        el.innerHTML = `
+          <img src="${m.img}" alt="${m.name}">
+          <h4 style="margin:8px 0 4px">${m.name}</h4>
+          <div class="meta">
+            <div style="color:var(--muted);font-size:13px">${m.type.toUpperCase()} • ${m.category}</div>
+            <div class="price">${format(m.price)}</div>
+          </div>
+          <button onclick="addToCart('${m.id}')">Add to cart</button>
+        `;
+        root.appendChild(el);
+      });
+    }
+
+    function renderCart(){
+      const root = $('#cartList');
+      root.innerHTML = '';
+      if(cart.length === 0){
+        root.innerHTML = '<div style="color:var(--muted);padding:10px">Your cart is empty.</div>';
+      } else {
+        cart.forEach(item=>{
+          const el = document.createElement('div');
+          el.className = 'cart-item';
+          el.innerHTML = `
+            <img src="${item.img}" alt="${item.name}">
+            <div class="cmeta">
+              <div style="font-weight:700">${item.name}</div>
+              <div style="color:var(--muted);font-size:13px">${format(item.price)} each</div>
+            </div>
+            <div style="text-align:right">
+              <div class="qty">
+                <button onclick="updateQty('${item.id}', -1)">−</button>
+                <div style="padding:6px 10px">${item.qty}</div>
+                <button onclick="updateQty('${item.id}', 1)">+</button>
+              </div>
+              <div style="margin-top:6px;color:var(--muted);font-weight:700">${format(item.price*item.qty)}</div>
+              <div style="margin-top:6px"><button onclick="removeFromCart('${item.id}')" style="background:transparent;border:0;color:#d00;cursor:pointer">Remove</button></div>
+            </div>
+          `;
+          root.appendChild(el);
+        });
+      }
+      // totals
+      const total = cart.reduce((s,i)=>s + i.price * i.qty, 0);
+      $('#cartTotal').innerText = format(total);
+      $('#stat-total').innerText = format(total);
+      $('#stat-count').innerText = cart.reduce((s,i)=>s + i.qty, 0);
+      $('#cartCountBubble').innerText = cart.reduce((s,i)=>s + i.qty, 0);
+    }
+
+    /***********************
+     * Cart actions
+     ***********************/
+    function addToCart(menuId){
+      const item = MENU.find(m=>m.id===menuId);
+      if(!item) return;
+      const existing = cart.find(c=>c.id===menuId);
+      if(existing){ existing.qty += 1; }
+      else cart.push({ id:item.id, name:item.name, price:item.price, qty:1, img:item.img });
+      saveCart();
+      openCart();
+      animateAdd();
+    }
+
+    function updateQty(id, delta){
+      const it = cart.find(c=>c.id===id);
+      if(!it) return;
+      it.qty += delta;
+      if(it.qty < 1) it.qty = 1;
+      saveCart();
+    }
+
+    function removeFromCart(id){
+      cart = cart.filter(c=>c.id!==id);
+      saveCart();
+    }
+
+    function clearCart(){
+      cart = [];
+      saveCart();
+    }
+
+    /***********************
+     * UI small helpers
+     ***********************/
+    function openCart(){ $('#cartSide').classList.add('open'); $('#cartSide').setAttribute('aria-hidden','false'); }
+    function closeCart(){ $('#cartSide').classList.remove('open'); $('#cartSide').setAttribute('aria-hidden','true'); }
+    function toggleCart(){ $('#cartSide').classList.toggle('open'); }
+
+    function animateAdd(){
+      // small pulse on cart button
+      const btn = $('#openCart');
+      btn.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}], {duration:350, easing:'ease'});
+    }
+
+    /***********************
+     * Filtering & search
+     ***********************/
+    function filterMenu(filter){
+      // filter: all, veg, nonveg, pizza, burger etc.
+      let items = MENU.slice();
+      if(filter === 'veg') items = items.filter(i=>i.type==='veg');
+      else if(filter === 'nonveg') items = items.filter(i=>i.type==='nonveg');
+      else if(filter === 'pizza') items = items.filter(i=>i.category==='pizza');
+      else if(filter === 'burger') items = items.filter(i=>i.category==='burger');
+      // else all
+      renderMenu(items);
+      goToSection('menu');
+    }
+
+    function search(term){
+      term = (term||'').trim().toLowerCase();
+      if(!term){ renderMenu(); return; }
+      const items = MENU.filter(i => i.name.toLowerCase().includes(term) || i.category.toLowerCase().includes(term));
+      renderMenu(items);
+      goToSection('menu');
+    }
+
+    /***********************
+     * Interactions connecting restaurants -> menu
+     ***********************/
+    function goToMenuAndFilter(restaurantId){
+      // simple demo: some restaurants map to categories
+      if(restaurantId === 'r3'){ filterMenu('pizza'); }
+      else if(restaurantId === 'r1'){ filterMenu('burger'); }
+      else filterMenu('all');
+    }
+
+    function exploreRestaurant(id){
+      alert('Explore restaurant details (demo): ' + id);
+    }
+
+    /***********************
+     * Scroll + nav highlight
+     ***********************/
+    function goToSection(id){
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    // nav links active on scroll
+    const navlinks = $$('.navlink');
+    const sections = ['home','restaurants','menu','contact'].map(id=>document.getElementById(id));
+    function onScroll(){
+      const top = window.scrollY + 120;
+      let current = 'home';
+      for(const s of sections){
+        if(s && s.offsetTop <= top) current = s.id;
+      }
+      navlinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+    }
+
+    /***********************
+     * Contact form
+     ***********************/
+    document.getElementById('contactForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const name = $('#cname').value.trim();
+      const email = $('#cemail').value.trim();
+      const msg = $('#cmsg').value.trim();
+      if(!name || !email || !msg){ alert('Please fill all fields'); return; }
+      // mock submit
+      alert('Thanks, ' + name + '! We received your message.');
+      $('#cname').value = ''; $('#cemail').value = ''; $('#cmsg').value = '';
+    });
+
+    /***********************
+     * Init + bindings
+     ***********************/
+    window.addEventListener('load', ()=>{
+      renderRestaurants();
+      renderMenu();
+      renderCart();
+
+      $('#openCart').addEventListener('click', openCart);
+      $('#closeCart').addEventListener('click', closeCart);
+      $('#checkoutBtn').addEventListener('click', ()=> {
+        if(cart.length === 0){ alert('Cart is empty'); return; }
+        alert('Checkout simulated. Order value: ' + document.getElementById('cartTotal').innerText);
+        clearCart();
+        closeCart();
+      });
+
+      $('#searchBtn').addEventListener('click', ()=> search($('#searchInput').value));
+      $('#searchInput').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') { e.preventDefault(); search(e.target.value); } });
+
+      window.addEventListener('scroll', onScroll);
+      onScroll();
+    });
+
+    // small keyboard shortcuts for demo
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'c') openCart();
+      if(e.key === 'Escape') closeCart();
+    });
+  </script>
+</body>
+</html>
